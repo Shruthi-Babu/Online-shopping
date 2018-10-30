@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+<h1>MI</h1>
+<hr>
+
+    {% for p in products %}
+        <div class="card-columns">
+            <div class="card">
+                <img class="card-img-top" src="/static/pic1.jpeg" alt="Mobile Demo" />
+                <div class="card-body">
+                    <h4 class="card-title">{{ p[0] }} </h4>
+                    <p class="card-text text-muted">RAM: {{ p[2] }}</p>
+                    <p class="card-text text-muted">ROM: {{ p[3] }}.</p>
+                    <p class="card-text text-muted">Battery: {{ p[4] }}</p>
+                    <p class="card-text text-muted">Camera: {{ p[5] }}</p>
+                    <p class="card-text text-muted">Cost: {{ p[6] }}</p>
+                    <a href="{{ url_for('place_order', model=p[0], cost=p[6]) }}" class="btn btn-primary">Buy Now</a>
+                </div>
+            </div>
+        </div>
+        <hr>
+
+    {% endfor %}
+
+{% endblock %}

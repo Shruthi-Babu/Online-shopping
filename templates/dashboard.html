@@ -2,4 +2,21 @@
 
 {% block body %}
   <h1>Dashboard <small> Welcome {{session.name}}</small></h1>
+<hr>
+
+    {%for b in brands%}
+        <div class="card-columns">
+            <div class="card">
+               <img class="card-img-top" src="{{ b[2] }}" alt="Logo" />
+                <div class="card-body">
+                    <a href="/dashboard/{{b[0]}}"><h4 class="card-title">{{ b[0] }} </h4></a>
+                    <p class="card-text">Some example text.</p>
+                    <a href="{{ b[1] }}"><i class="fa fa-world fa-fw" style="color:black"></i> Visit website</a>
+                </div>
+            </div>
+        </div>
+        <hr>
+
+    {% endfor %}
+
 {% endblock %}
