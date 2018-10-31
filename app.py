@@ -157,29 +157,29 @@ def mi():
     return render_template('mi.html', products=products)
 
 
-@app.route('/dashboard/<model>/<cost>')
+@app.route('/dashboard/<model>')
 @is_logged_in
-def place_order():
+def place_order(model):
     conn = sqlite3.connect('mobileshopping.db')
     c = conn.cursor()
 
     custname = session['name']
+
+    c.execute('''select cost from mobile where model=?;''', (model,))
+    data= c.fetchone()
+    cost = data[0]
+
     c.execute('''select id from customer where name=?;''', (custname,))
     data= c.fetchone()
     custid= data[0]
-    model=request.args[0]
-
     now = datetime.datetime.now().date()
     week = datetime.timedelta(days=7)
     delivery_date = now + week
     #c.execute('''insert into orders(cust_id, model, ord_date, deli_date, cost) values (?,?,?,?,?);''',(custid, model, now, delivery_date, cost))
     conn.commit()
 
-
-
-
-
-    return str(model)
+    flash('You have successfully placed the order!', 'success')
+    return render_template('home.html')
 
 
 
@@ -205,3 +205,4 @@ if __name__ == "__main__":
     app.run(debug=True)
 
 
+#    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">

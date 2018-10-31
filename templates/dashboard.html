@@ -3,20 +3,23 @@
 {% block body %}
   <h1>Dashboard <small> Welcome {{session.name}}</small></h1>
 <hr>
-
+<div class="row">
     {%for b in brands%}
-        <div class="card-columns">
-            <div class="card">
-               <img class="card-img-top" src="{{ b[2] }}" alt="Logo" />
-                <div class="card-body">
-                    <a href="/dashboard/{{b[0]}}"><h4 class="card-title">{{ b[0] }} </h4></a>
-                    <p class="card-text">Some example text.</p>
-                    <a href="{{ b[1] }}"><i class="fa fa-world fa-fw" style="color:black"></i> Visit website</a>
+
+            <div class="col-lg-3">
+                <div class="card mt-3 text-center border border-primary">
+                   <img class="card-img-top" style="height:15rem;" src="{{ b[2] }}" alt="Logo" />
+                    <hr>
+                    <div class="card-body">
+                        <a href="/dashboard/{{b[0]}}"><h4 class="card-title">{{ b[0] }} </h4></a>
+                        <p class="card-text">Some example text.</p>
+                        <a href="{{ b[1] }}"><i class="fa fa-world fa-fw" style="color:black"></i> Visit website</a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <hr>
+
 
     {% endfor %}
+</div>
 
 {% endblock %}
