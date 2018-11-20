@@ -1,0 +1,38 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+
+<div class="card border-info w-75" style="margin:0 auto; float:none " >
+    <div class="card-body">
+        <h3 class="card-title text-center">Your Order Details</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="row ml-3"><strong>{{ model}}</strong> </div>
+                <div class="row ml-3">Total cost: Rs {{ cost }} </div>
+                <div class="row ml-3">Expected Delivery on: {{delivery_date}} </div>
+                <hr>
+                <div class="row ml-3"><strong>Shipping Address:</strong> </div>
+                <div class="row ml-3">{{ cust_data[1]}} </div>
+                <div class="row ml-3">{{ cust_data[3]}} </div>
+                <div class="row ml-3">#{{ cust_data[5]}}, {{ cust_data[6]}} nd/st Cross ,{{ cust_data[7]}}</div>
+            </div>
+            <div class="col-md-6">
+                <img src="/static/pic1.jpeg" alt="Mobile Demo">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+
+    </div>
+    <div class="col-md-4">
+
+    </div>
+</div>
+      <marquee direction = "right">Thank You for shopping with us!</marquee>
+
+
+{% endblock %}

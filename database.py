@@ -30,15 +30,23 @@ def mobile_table():
     rom varchar(5),
     battery varchar(10),
     camera varchar(6),
-    cost varchar(5),
+    cost integer,
     constraint fkm foreign key(brand) references brand(name)
     ); ''')
-    c.execute('''insert into mobile values( 'Xiaomi Mi 4i' ,'Mi' , '2GB' , '16GB' ,'3120mAh', 	'13MP' ,'9900'); ''')
-    c.execute('''insert into mobile values( 'Xiaomi Mi mix' ,'Mi' , '4GB' , '128GB' ,'4000mAh', 	'16MP' ,'34500'); ''')
-    c.execute('''insert into mobile values( 'Xiaomi Mi 5' ,'Mi' , '3GB' , '32GB' ,'3000mAh', 	'16MP' ,'19990'); ''')
-    c.execute('''insert into mobile values( 'Xiaomi Mi max' ,'Mi' , '3GB' , '32GB' ,'4850mAh', 	'16MP' ,'14999'); ''')
-    c.execute('''insert into mobile values( 'Xiaomi Mi A1' ,'Mi' , '4GB' , '64GB' ,'3080mAh', 	'12MP' ,'14856'); ''')
-    c.execute('''insert into mobile values( 'Xiaomi Mi 4i' ,'Mi' , '2GB' , '16GB' ,'3120mAh', 	'13MP' ,'9900'); ''')
+    c.execute('''insert into mobile values( 'Xiaomi Mi 4i' ,'Mi' , '2GB' , '16GB' ,'3120mAh', 	'13MP' ,9900); ''')
+    c.execute('''insert into mobile values( 'Xiaomi Mi mix' ,'Mi' , '4GB' , '128GB' ,'4000mAh', 	'16MP' ,34500); ''')
+    c.execute('''insert into mobile values( 'Xiaomi Mi 5' ,'Mi' , '3GB' , '32GB' ,'3000mAh', 	'16MP' ,19990); ''')
+    c.execute('''insert into mobile values( 'Xiaomi Mi max' ,'Mi' , '3GB' , '32GB' ,'4850mAh', 	'16MP' ,14999); ''')
+    c.execute('''insert into mobile values( 'Xiaomi Mi A1' ,'Mi' , '4GB' , '64GB' ,'3080mAh', 	'12MP' ,14856); ''')
+
+    c.execute('''insert into mobile values( 'Samsung Galaxy A7' ,'Samsung' , '4GB' , '64GB' ,'3300mAh', '24MP' ,22945); ''')
+    c.execute('''insert into mobile values( 'Samsung Galaxy J6' ,'Samsung' , '4GB' , '64GB' ,'3000mAh', 	'13MP' ,12900); ''')
+
+    c.execute('''insert into mobile values( 'iPhone XS' ,'Apple' , '4GB' , '64GB' ,'3500mAh', '12MP' ,99900); ''')
+    c.execute('''insert into mobile values( 'iPhone XS Max' ,'Apple' , '4GB' , '128GB' ,'4300mAh', '14MP' ,109900); ''')
+    c.execute('''insert into mobile values( 'iPhone XR' ,'Apple' , '8GB' , '64GB' ,'3800mAh', '12MP' ,76900); ''')
+    c.execute('''insert into mobile values( 'iPhone X' ,'Apple' , '16GB' , '256GB' ,'4000mAh', '24MP' ,144900); ''')
+
     conn.commit()
     c.close()
     
@@ -50,23 +58,40 @@ def order_table():
     ORDER_ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     CUST_ID INTEGER NOT NULL,
     MODEL varchar(50) NOT NULL,
-    ORD_DATE DATE,
-    DELI_DATE DATE,
+    ORD_DATE VARCHAR(10),
     DEL_BOY_ID INTEGER,
-    COST VARCHAR(5)
+    COST INTEGER,
+    
     ); ''')
+
+
     
     
-def dash():
-    # Create cursor
-    conn = sqlite3.connect('mobileshopping.db')
+def del_details():
     c = conn.cursor()
-    result = c.execute("SELECT * FROM BRAND")
-    brands = c.fetchall()
-    for brand in brands:
-        print (brand)
+    c.execute('''CREATE TABLE IF NOT EXISTS DELIVERY
+        (
+        ORD_DATE    VARCHAR(10)  ,
+        DELI_DATE    VARCHAR(10)
+        ); ''')
 
 
 #mobile_table()
 #dash()
-#order_table()
+order_table()
+
+del_details()
+
+
+
+
+#now = datetime.datetime.now().date()
+    # now=datetime.date.today()
+    # week = datetime.timedelta(days=7)
+    # delivery_date = now + week
+    #
+    # c.execute(''' CREATE TRIGGER  IF NOT EXISTS del_date_details AFTER INSERT
+    # ON ORDERS
+    # BEGIN
+    #    INSERT INTO DELIVERY(ORD_DATE, DELI_DATE) VALUES (?,?);
+    # END;''',(datetime.datetime.now().date(),  delivery_date))
