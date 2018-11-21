@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:background-repeat="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8">
     <title>Online Shopping</title>
@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="/assets/stylesheets/stylesheet.css">
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
-     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css">
 
   </head>
-  <body>
-    {% include 'includes/_navbar.html' %}
+<body>
+{% include 'includes/_navbar.html' %}
     <div class="container">
       {% include 'includes/_messages.html' %}
       {% block body %}{% endblock %}
@@ -20,3 +20,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
   </body>
 </html>
+
+
+<!---   <body background="/static/bg2.jpeg" style="background-repeat:no-repeat;background-size:100% 100%; background-attachment:fixed " >
+-->

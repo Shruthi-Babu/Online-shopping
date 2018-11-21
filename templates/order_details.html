@@ -15,10 +15,14 @@
                 <div class="row ml-3"><strong>Shipping Address:</strong> </div>
                 <div class="row ml-3">{{ cust_data[1]}} </div>
                 <div class="row ml-3">{{ cust_data[3]}} </div>
-                <div class="row ml-3">#{{ cust_data[5]}}, {{ cust_data[6]}} nd/st Cross ,{{ cust_data[7]}}</div>
+                <div class="row ml-3">#{{ cust_data[5]}}, {{ cust_data[6]}} th/nd/st Cross ,{{ cust_data[7]}}</div>
+                <hr>
+                <div class="row ml-3"><strong>Delivery Boy Details:</strong> </div>
+                <div class="row ml-3">{{ del_boy[1]}} </div>
+                <div class="row ml-3">{{ del_boy[2]}} </div>
             </div>
             <div class="col-md-6">
-                <img src="/static/pic1.jpeg" alt="Mobile Demo">
+                <img src="/static/{{ model }}.jpeg" alt="Mobile Demo">
             </div>
         </div>
     </div>

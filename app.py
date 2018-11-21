@@ -1,11 +1,19 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
-#import Flask-MySQL
-from wtforms import Form, StringField, TextAreaField, PasswordField, validators, SelectField
+from wtforms import Form, StringField, TextAreaField, PasswordField, validators, SelectField, IntegerField
 from passlib.hash import sha256_crypt
 import sqlite3
 from functools import wraps
 import timeit
 import datetime
+import logging, os
+from werkzeug.utils import secure_filename
+
+
+#from flask_uploads import UploadSet, configure_uploads, IMAGES
+UPLOAD_FOLDER = '/static'
+ALLOWED_EXTENSIONS = set([ 'png', 'jpg', 'jpeg', 'gif'])
+
+
 
 conn = sqlite3.connect('mobileshopping.db')
 
@@ -24,7 +32,12 @@ def createtable():
          );''')
 
 
+
+
+
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 @app.route("/")
 def home():
@@ -40,9 +53,9 @@ class RegisterForm(Form):
 
     doornum = StringField('Door No.', [validators.DataRequired('Please enter Door number'), validators.Length(min=1, max=50)])
     street = StringField('Street', [validators.DataRequired('Please enter Street'), validators.Length(min=1, max=50)])
-    locality = SelectField('Locality', choices=[('Jayanagr', 'Jayanagar'), ('TR Nagar', 'TR Nagar'), ('Vijaynagar', 'Vijaynagar')])
+    locality = SelectField('Locality', choices=[('Jayanagar', 'Jayanagar'), ('TR Nagar', 'TR Nagar'), ('Malleshwaram', 'Malleshwaram'), ('Girinagar', 'Girinagar'), ('Vijaynagar', 'Vijaynagar'), ('Other', 'Other')])
 
-#changeeeeeee it
+
 @app.route("/register", methods=['GET' , 'POST'])
 def register():
     conn = sqlite3.connect('mobileshopping.db')
@@ -57,19 +70,17 @@ def register():
         street = form.street.data
         locality = form.locality.data
 
-        # Create cursor
         c = conn.cursor()
         c.execute("INSERT INTO CUSTOMER(name, email,phone, password, door_num, street, locality) VALUES(?,?,?,?,?,?,?)",
                     (name, email,phone, password, doornum, street, locality))
-        # Commit to DB
         conn.commit()
-        # Close connection
         c.close()
 
         flash('You are now registered and can log in', 'success')
         return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
+
 
 # User login
 @app.route('/login', methods=['GET', 'POST'])
@@ -79,7 +90,6 @@ def login():
         email = request.form['email']
         password_candidate = request.form['password']
 
-        # Create cursor
         conn = sqlite3.connect('mobileshopping.db')
         c = conn.cursor()
 
@@ -148,8 +158,6 @@ def view_all():
     return render_template('mobile_models.html', products=products, brand= 'All')
 
 
-#<h1 class="text-center" >{{mob_brand}}</h1>
-#"{{ url_for('chosen_brand', brand=b[0] ) }}"
 @app.route('/dashboard/<brand>', methods=['GET', 'POST'])
 @is_logged_in
 def chosen_brand(brand):
@@ -157,7 +165,6 @@ def chosen_brand(brand):
     c = conn.cursor()
     c.execute("""SELECT * FROM mobile WHERE brand=?; """, (brand,))
     products = c.fetchall()
-    # Close Connection
     c.close()
     return render_template('mobile_models.html', products=products, brand=brand)
 
@@ -224,22 +231,9 @@ def place_order(model):
     custname = session['name']
     customer_email= session['email']
 
-    #insert here
     now = datetime.date.today()
     week = datetime.timedelta(days=7)
     delivery_date = now + week
-
-    c.execute(''' CREATE TRIGGER  IF NOT EXISTS del_date_details AFTER INSERT ON ORDERS
-    BEGIN
-       INSERT INTO DELIVERY( DELI_DATE) VALUES (?);
-    END;''',(datetime.date.today(),  delivery_date))
-
-    #now1 = datetime.datetime.now().date()
-
-#    c.execute('create trigger if not exists calculate_sp after insert on stock
-    # for each row begin
-    #  update stock set sell_price = new.cost_price*1.18*1.2 where cycle_name = new.cycle_name;
-    #  end')
 
     c.execute('''select cost from mobile where model=?;''', (model,))
     data= c.fetchone()
@@ -248,22 +242,31 @@ def place_order(model):
     c.execute('''select * from customer where email=?;''', (customer_email,))
     data= c.fetchone()
     custid= data[0]
+    locality= data[7]
+    c.execute('''select id from deliveryboy where locality=?;''', (locality,))
+    boy=c.fetchone()
+    boyid=boy[0]
 
-    c.execute('''insert into orders(cust_id, model, ord_date, cost) values (?,?,?,?);''',(custid, model,now, cost))
-    c.execute('''insert into delivery(ord_date) values (?);''', (now,))
+    c.execute('''insert into orders(cust_id, model, ord_date, cost, del_boy_id) values (?,?,?,?, ?);''',(custid, model, now, cost, boyid))
+
+    c.execute('''select * from delivery_dates where ord_date= ?;''', (now,))
+    ord=c.fetchone()
+
+    if not ord:
+        c.execute('''insert into delivery_dates(ord_date, deli_date) values (?, ?);''', (now, delivery_date))
     conn.commit()
 
+    c.execute('''select * from orders order by order_id desc ;''')
+    result= c.fetchone()
+    cost= round(result[5])
+    model= result[2]
+
+    c.execute('''select * from DELIVERYBOY where locality=?;''', (locality,))
+    deldata= c.fetchone()
+    name= deldata[1]
     flash('You have succesfully placed your order!', 'success')
-    return render_template('order_details.html', model=model, cost=cost, cust_data=data, delivery_date='hi' )
-    #return str(delivery_date)
 
-#style="width: 50rem;"
-
-#action="{{ url_for('shipping_details') }}"
-def shipping_details():
-    a=5
-    print(a)
-
+    return render_template('order_details.html', model=model, cost=cost, cust_data=data, delivery_date=delivery_date, del_boy=deldata )
 
 @app.route('/logout')
 @is_logged_in
@@ -281,8 +284,201 @@ def about():
 def contact():
     return render_template('contact.html')
 
+
+
+#-----------------------Admin----------------------
+
+
+def is_admin_logged_in(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'admin_logged_in' in session:
+            return f(*args, *kwargs)
+        else:
+            return redirect(url_for('admin_login'))
+
+    return wrap
+
+@app.route('/login-admin', methods=['GET', 'POST'])
+#@not_admin_logged_in
+def admin_login():
+    if request.method == 'POST':
+        # GEt user form
+        email = request.form['email']
+        password_candidate = request.form['password']
+
+        conn = sqlite3.connect('mobileshopping.db')
+        c = conn.cursor()
+
+        # Get user by username
+        c.execute("SELECT * FROM admin WHERE email = ?", [email])
+        if c is None:
+            flash('Incorrect login', 'danger')
+            return render_template('admin-login.html')
+
+        #if c is not None:
+        else:
+            data = c.fetchone()
+            id=data[0]
+            password = data[3]
+            name = data[1]
+            email = data[2]
+
+        if password==password_candidate:
+            session['admin_logged_in'] = True
+            session['admin_id'] = id
+            session['admin_name'] = name
+            return redirect(url_for('admin'))
+
+        else:
+            flash('Incorrect login', 'danger')
+            return render_template('admin-login.html')
+
+    return render_template('admin-login.html')
+
+
+
+@app.route('/admin-logout')
+def admin_logout():
+    #if 'admin_logged_in' in session:
+     session.clear()
+     flash('You are now logged out!', 'success')
+     return redirect(url_for('home'))
+    #return redirect(url_for('admin'))
+
+@app.route('/admin')
+@is_admin_logged_in
+def admin():
+    name = session['admin_name']
+
+
+    return render_template('admin-page.html', name= name)
+
+
+class AddMob(Form):
+    model = StringField('Model', [validators.DataRequired('Please enter model'), validators.Length(min=1, max=50)])
+    brand = StringField('Brand',[ validators.DataRequired('Please enter brand'), validators.Length(min=1, max=50)])
+    ram = SelectField('RAM', choices=[('2GB', '2GB'), ('4GB', '4GB'), ('8GB', '8GB'), ('16GB', '16GB')])
+    rom = SelectField('ROM', choices=[('2GB', '2GB'), ('4GB', '4GB'), ('8GB', '8GB'), ('16GB', '16GB'), ('32GB', '32GB'), ('64GB', '64GB'), ('128GB', '128GB'), ('256GB', '256GB')])
+    battery = StringField('Battery', [validators.DataRequired('Please enter battery capacity'), validators.Length(min=1, max=50)])
+    camera = StringField('Camera', [validators.DataRequired('Please enter camera capacity'), validators.Length(min=1, max=50)])
+    cost= IntegerField('Cost', [validators.DataRequired('Please enter cost'), validators.Length(min=1, max=50)])
+
+
+
+@app.route('/admin/add-mobile')
+@is_admin_logged_in
+def admin_add_mobile():
+    name = session['admin_name']
+    conn = sqlite3.connect('mobileshopping.db')
+    form = AddMob(request.form)
+    if request.method == 'POST' and form.validate():
+        model = form.model.data
+        brand = form.brand.data
+        ram = form.ram.data
+        rom = form.rom.data
+        battery = form.battery.data
+        battery= battery+ "maH"
+
+        camera = form.camera.data
+        camera=camera+ "MP"
+        cost = form.cost.data
+
+        img = request.files['image']
+        #save_photo = photos.save(img, folder='static')
+
+        #app.logger.info(app.config['static'])
+        img_name = secure_filename(img.filename)
+        saved_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)
+        img.save(saved_path)
+
+        #filename = secure_filename(file.filename)
+        #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        c = conn.cursor()
+        c.execute("INSERT INTO mobile"
+                  "(model, brand, ram, rom, battery, camera, cost) VALUES(?,?,?,?,?,?,?)", (model, brand, ram, rom, battery, camera, cost))
+        conn.commit()
+    return render_template('add-mob.html', form=form)
+
+
+
+
+@app.route('/admin/delete-mobile', methods=['GET', 'POST'])
+@is_admin_logged_in
+def admin_delete_mobile():
+    name = session['admin_name']
+    conn = sqlite3.connect('mobileshopping.db')
+    c = conn.cursor()
+    c.execute('''select * from mobile;''')
+    mobs=c.fetchall()
+    # if request.method == 'POST':
+    #     conn = sqlite3.connect('mobileshopping.db')
+    #     c = conn.cursor()
+    #     #c.execute('''delete from mobile where model=?;''', (model,))
+    #     flash('You have deleted the selected model from the dashboard!', 'danger')
+    #     return redirect(url_for('admin', name=name))
+
+    return render_template('delete-mob.html', mobiles=mobs)
+
+
+@app.route('/admin/delete-mobile/<model>', methods=['GET', 'POST'])
+@is_admin_logged_in
+def admin_delete_model(model):
+    name = session['admin_name']
+
+    #if request.method == 'POST':
+    conn = sqlite3.connect('mobileshopping.db')
+    c = conn.cursor()
+    c.execute('''delete from mobile where model=?;''', (model,))
+    conn.commit()
+    flash('You have deleted the selected model from the dashboard!', 'danger')
+    return render_template('mob-deleted.html')
+
+
+
+
+@app.route('/admin/view_orders')
+@is_admin_logged_in
+def admin_view_orders():
+    name = session['admin_name']
+    conn = sqlite3.connect('mobileshopping.db')
+    c = conn.cursor()
+    c.execute('''select o.order_id, c.name, o.model, o.cost, d.name from orders o, customer c, deliveryboy d where o.cust_id=c.id and o.del_boy_id=d.id ;''')
+    #c.execute('''select * from orders;''')
+    data=c.fetchall()
+
+    return render_template('view-orders.html', orders=data)
+
+
+
+#---------------Admin end---------------------------
+
+def update():
+    conn = sqlite3.connect('mobileshopping.db')
+    c = conn.cursor()
+    # c.execute('''update orders set del_boy_id=2 where order_id=7;''')
+    # c.execute('''update orders set del_boy_id=2 where order_id=8;''')
+    # c.execute('''update orders set del_boy_id=2 where order_id=9;''')
+    # c.execute('''update orders set del_boy_id=2 where order_id=12;''')
+    # c.execute('''update orders set del_boy_id=2 where order_id=13;''')
+    # c.execute('''update orders set del_boy_id=2 where order_id=14;''')
+
+
+    c.execute('''update orders set del_boy_id=3 where order_id=2;''')
+    c.execute('''update orders set del_boy_id=3 where order_id=3;''')
+    c.execute('''update orders set del_boy_id=3 where order_id=4;''')
+    c.execute('''update orders set del_boy_id=3 where order_id=5;''')
+    c.execute('''update orders set del_boy_id=3 where order_id=6;''')
+    c.execute('''update orders set del_boy_id=3 where order_id=10;''')
+    c.execute('''update orders set del_boy_id=3 where order_id=11;''')
+
+    conn.commit()
+    
+
 if __name__ == "__main__":
     #createtable()
+    #update()
     app.secret_key="secret123"
     app.run(debug=True)
 
