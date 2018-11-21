@@ -378,7 +378,7 @@ def admin_add_mobile():
         ram = form.ram.data
         rom = form.rom.data
         battery = form.battery.data
-        battery= battery+ "maH"
+        battery= battery+ "MaH"
 
         camera = form.camera.data
         camera=camera+ "MP"
@@ -412,12 +412,6 @@ def admin_delete_mobile():
     c = conn.cursor()
     c.execute('''select * from mobile;''')
     mobs=c.fetchall()
-    # if request.method == 'POST':
-    #     conn = sqlite3.connect('mobileshopping.db')
-    #     c = conn.cursor()
-    #     #c.execute('''delete from mobile where model=?;''', (model,))
-    #     flash('You have deleted the selected model from the dashboard!', 'danger')
-    #     return redirect(url_for('admin', name=name))
 
     return render_template('delete-mob.html', mobiles=mobs)
 
@@ -426,8 +420,6 @@ def admin_delete_mobile():
 @is_admin_logged_in
 def admin_delete_model(model):
     name = session['admin_name']
-
-    #if request.method == 'POST':
     conn = sqlite3.connect('mobileshopping.db')
     c = conn.cursor()
     c.execute('''delete from mobile where model=?;''', (model,))
@@ -445,7 +437,6 @@ def admin_view_orders():
     conn = sqlite3.connect('mobileshopping.db')
     c = conn.cursor()
     c.execute('''select o.order_id, c.name, o.model, o.cost, d.name from orders o, customer c, deliveryboy d where o.cust_id=c.id and o.del_boy_id=d.id ;''')
-    #c.execute('''select * from orders;''')
     data=c.fetchall()
 
     return render_template('view-orders.html', orders=data)
@@ -454,31 +445,9 @@ def admin_view_orders():
 
 #---------------Admin end---------------------------
 
-def update():
-    conn = sqlite3.connect('mobileshopping.db')
-    c = conn.cursor()
-    # c.execute('''update orders set del_boy_id=2 where order_id=7;''')
-    # c.execute('''update orders set del_boy_id=2 where order_id=8;''')
-    # c.execute('''update orders set del_boy_id=2 where order_id=9;''')
-    # c.execute('''update orders set del_boy_id=2 where order_id=12;''')
-    # c.execute('''update orders set del_boy_id=2 where order_id=13;''')
-    # c.execute('''update orders set del_boy_id=2 where order_id=14;''')
-
-
-    c.execute('''update orders set del_boy_id=3 where order_id=2;''')
-    c.execute('''update orders set del_boy_id=3 where order_id=3;''')
-    c.execute('''update orders set del_boy_id=3 where order_id=4;''')
-    c.execute('''update orders set del_boy_id=3 where order_id=5;''')
-    c.execute('''update orders set del_boy_id=3 where order_id=6;''')
-    c.execute('''update orders set del_boy_id=3 where order_id=10;''')
-    c.execute('''update orders set del_boy_id=3 where order_id=11;''')
-
-    conn.commit()
-    
 
 if __name__ == "__main__":
     #createtable()
-    #update()
     app.secret_key="secret123"
     app.run(debug=True)
 
