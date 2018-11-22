@@ -42,10 +42,8 @@ def mobile_table():
     c.execute('''insert into mobile values( 'Xiaomi Mi 5' ,'Mi' , '3GB' , '32GB' ,'3000mAh', 	'16MP' ,19990); ''')
     c.execute('''insert into mobile values( 'Xiaomi Mi max' ,'Mi' , '3GB' , '32GB' ,'4850mAh', 	'16MP' ,14999); ''')
     c.execute('''insert into mobile values( 'Xiaomi Mi A1' ,'Mi' , '4GB' , '64GB' ,'3080mAh', 	'12MP' ,14856); ''')
-
     c.execute('''insert into mobile values( 'Samsung Galaxy A7' ,'Samsung' , '4GB' , '64GB' ,'3300mAh', '24MP' ,22945); ''')
     c.execute('''insert into mobile values( 'Samsung Galaxy J6' ,'Samsung' , '4GB' , '64GB' ,'3000mAh', 	'13MP' ,12900); ''')
-
     c.execute('''insert into mobile values( 'iPhone XS' ,'Apple' , '4GB' , '64GB' ,'3500mAh', '12MP' ,99900); ''')
     c.execute('''insert into mobile values( 'iPhone XS Max' ,'Apple' , '4GB' , '128GB' ,'4300mAh', '14MP' ,109900); ''')
     c.execute('''insert into mobile values( 'iPhone XR' ,'Apple' , '8GB' , '64GB' ,'3800mAh', '12MP' ,76900); ''')
@@ -126,15 +124,12 @@ def admin_details():
     c.close()
 
 #trig()
-
 #brand_table()
-
 #mobile_table()
-
 #order_table()
-#
+
 # del_details()
-#
+
 #delboy_tab()
 #admin_details()
 

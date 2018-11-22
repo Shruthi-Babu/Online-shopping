@@ -10,12 +10,12 @@ from werkzeug.utils import secure_filename
 
 
 #from flask_uploads import UploadSet, configure_uploads, IMAGES
-UPLOAD_FOLDER = '/static'
-ALLOWED_EXTENSIONS = set([ 'png', 'jpg', 'jpeg', 'gif'])
-
+# UPLOAD_FOLDER = '../static'
+# ALLOWED_EXTENSIONS = set([ 'png', 'jpg', 'jpeg', 'gif'])
 
 
 conn = sqlite3.connect('mobileshopping.db')
+
 
 def createtable():
     c = conn.cursor()
@@ -32,11 +32,16 @@ def createtable():
          );''')
 
 
-
-
-
 app = Flask(__name__)
+
+UPLOAD_FOLDER = 'static'
+ALLOWED_EXTENSIONS = set([ 'png', 'jpg', 'jpeg', 'gif'])
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.route("/")
@@ -147,6 +152,7 @@ def dashboard():
     c.close()
     return render_template('dashboard.html', brands=brands)
 
+
 @app.route('/dashboard/All', methods=['GET', 'POST'])
 @is_logged_in
 def view_all():
@@ -182,6 +188,7 @@ def sort_lowtohigh(b):
     c.close()
     return render_template('mobile_models.html', products=products, brand=b)
 
+
 @app.route('/dashboard-sorted-hl/<b>', methods=['GET', 'POST'])
 @is_logged_in
 def sort_hightolow(b):
@@ -194,33 +201,6 @@ def sort_hightolow(b):
     products = c.fetchall()
     c.close()
     return render_template('mobile_models.html', products=products , brand=b)
-
-# to add filter Not workingg
-# class Filtering(Form):
-#     ram = SelectField('RAM', choices=[('2GB', '2GB'), ('4GB', '4GB'), ('8GB', '8GB'), ('16GB', '16GB')])
-#
-# @app.route('/dashboard-sorted-hl/<b>', methods=['GET', 'POST'])
-# def filter_ram(b):
-#     conn = sqlite3.connect('mobileshopping.db')
-#     form= Filtering(request.form)
-#     if request.method == 'POST':
-#         ram = form.ram.data
-#         c=conn.cursor()
-#         c.execute("""SELECT * FROM mobile WHERE brand=? AND ram=?; """, (b,ram))
-#     products = c.fetchall()
-#     c.close()
-#     return render_template('mobile_models.html', products=products, brand=b)
-
-# {% from "includes/_formhelpers.html" import render_field %}
-#
-#   <form method="POST" action="">
-#       <div class="form-group">
-#        {{render_field(form.ram, class_="form-control")}}
-#       </div>
-#   </form>
-
-
-
 
 
 @app.route('/dashboard-order/<model>')
@@ -263,10 +243,10 @@ def place_order(model):
 
     c.execute('''select * from DELIVERYBOY where locality=?;''', (locality,))
     deldata= c.fetchone()
-    name= deldata[1]
     flash('You have succesfully placed your order!', 'success')
 
     return render_template('order_details.html', model=model, cost=cost, cust_data=data, delivery_date=delivery_date, del_boy=deldata )
+
 
 @app.route('/logout')
 @is_logged_in
@@ -285,10 +265,7 @@ def contact():
     return render_template('contact.html')
 
 
-
 #-----------------------Admin----------------------
-
-
 def is_admin_logged_in(f):
     @wraps(f)
     def wrap(*args, **kwargs):
@@ -296,11 +273,10 @@ def is_admin_logged_in(f):
             return f(*args, *kwargs)
         else:
             return redirect(url_for('admin_login'))
-
     return wrap
 
+
 @app.route('/login-admin', methods=['GET', 'POST'])
-#@not_admin_logged_in
 def admin_login():
     if request.method == 'POST':
         # GEt user form
@@ -350,25 +326,22 @@ def admin_logout():
 @is_admin_logged_in
 def admin():
     name = session['admin_name']
-
-
     return render_template('admin-page.html', name= name)
 
 
 class AddMob(Form):
     model = StringField('Model', [validators.DataRequired('Please enter model'), validators.Length(min=1, max=50)])
-    brand = StringField('Brand',[ validators.DataRequired('Please enter brand'), validators.Length(min=1, max=50)])
+    brand = SelectField('Brand', choices=[('Mi', 'Mi'), ('Samsung', 'Samsung'), ('Apple', 'Apple')])
     ram = SelectField('RAM', choices=[('2GB', '2GB'), ('4GB', '4GB'), ('8GB', '8GB'), ('16GB', '16GB')])
     rom = SelectField('ROM', choices=[('2GB', '2GB'), ('4GB', '4GB'), ('8GB', '8GB'), ('16GB', '16GB'), ('32GB', '32GB'), ('64GB', '64GB'), ('128GB', '128GB'), ('256GB', '256GB')])
     battery = StringField('Battery', [validators.DataRequired('Please enter battery capacity'), validators.Length(min=1, max=50)])
     camera = StringField('Camera', [validators.DataRequired('Please enter camera capacity'), validators.Length(min=1, max=50)])
-    cost= IntegerField('Cost', [validators.DataRequired('Please enter cost'), validators.Length(min=1, max=50)])
+    cost= IntegerField('Cost', [validators.DataRequired('Please enter cost')])
 
 
-
-@app.route('/admin/add-mobile')
+@app.route('/admin/addMobile' , methods=['GET','POST'])
 @is_admin_logged_in
-def admin_add_mobile():
+def adminaddmobile():
     name = session['admin_name']
     conn = sqlite3.connect('mobileshopping.db')
     form = AddMob(request.form)
@@ -378,33 +351,33 @@ def admin_add_mobile():
         ram = form.ram.data
         rom = form.rom.data
         battery = form.battery.data
-        battery= battery+ "MaH"
-
+        battery= battery+ " mAh"
         camera = form.camera.data
-        camera=camera+ "MP"
+        camera=camera+ " MP"
         cost = form.cost.data
-
-        img = request.files['image']
-        #save_photo = photos.save(img, folder='static')
-
-        #app.logger.info(app.config['static'])
-        img_name = secure_filename(img.filename)
-        saved_path = os.path.join(app.config['UPLOAD_FOLDER'], img_name)
-        img.save(saved_path)
-
-        #filename = secure_filename(file.filename)
-        #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        image = request.files['image']
+        if image and allowed_file(image.filename):
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
         c = conn.cursor()
-        c.execute("INSERT INTO mobile"
-                  "(model, brand, ram, rom, battery, camera, cost) VALUES(?,?,?,?,?,?,?)", (model, brand, ram, rom, battery, camera, cost))
-        conn.commit()
+        c.execute('''select * from mobile where model=?;''',(model,))
+        if c is not None:
+            flash('This model already exists!' , 'danger')
+            return redirect(url_for('adminaddmobile'))
+        else:
+            c.execute("INSERT INTO mobile (model, brand, ram, rom, battery, camera, cost) VALUES(?,?,?,?,?,?,?)", (model, brand, ram, rom, battery, camera, cost))
+            conn.commit()
+            flash('You have succesfully added the mobile!', 'success')
+            return redirect(url_for('admin'))
     return render_template('add-mob.html', form=form)
 
 
 
+"""
+#<div class="text-center mt-10 mb-3"> <a href="{{ url_for('admin_delete_mobile') }}" class="btn  btn-dark">Delete Mobile</a></div>
 
-@app.route('/admin/delete-mobile', methods=['GET', 'POST'])
+@app.route('/admin/delete-mobile', methods=['GET','POST'])
 @is_admin_logged_in
 def admin_delete_mobile():
     name = session['admin_name']
@@ -412,7 +385,6 @@ def admin_delete_mobile():
     c = conn.cursor()
     c.execute('''select * from mobile;''')
     mobs=c.fetchall()
-
     return render_template('delete-mob.html', mobiles=mobs)
 
 
@@ -427,7 +399,7 @@ def admin_delete_model(model):
     flash('You have deleted the selected model from the dashboard!', 'danger')
     return render_template('mob-deleted.html')
 
-
+"""
 
 
 @app.route('/admin/view_orders')
