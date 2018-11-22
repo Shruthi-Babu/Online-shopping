@@ -3,16 +3,9 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators,
 from passlib.hash import sha256_crypt
 import sqlite3
 from functools import wraps
-import timeit
 import datetime
-import logging, os
+import os
 from werkzeug.utils import secure_filename
-
-
-#from flask_uploads import UploadSet, configure_uploads, IMAGES
-# UPLOAD_FOLDER = '../static'
-# ALLOWED_EXTENSIONS = set([ 'png', 'jpg', 'jpeg', 'gif'])
-
 
 conn = sqlite3.connect('mobileshopping.db')
 
@@ -55,7 +48,6 @@ class RegisterForm(Form):
     password = PasswordField('Password',
     [validators.DataRequired('Please enter password!'),  validators.EqualTo('confirm', message='Passwords do not match')])
     confirm = PasswordField('Confirm Password')
-
     doornum = StringField('Door No.', [validators.DataRequired('Please enter Door number'), validators.Length(min=1, max=50)])
     street = StringField('Street', [validators.DataRequired('Please enter Street'), validators.Length(min=1, max=50)])
     locality = SelectField('Locality', choices=[('Jayanagar', 'Jayanagar'), ('TR Nagar', 'TR Nagar'), ('Malleshwaram', 'Malleshwaram'), ('Girinagar', 'Girinagar'), ('Vijaynagar', 'Vijaynagar'), ('Other', 'Other')])
@@ -70,7 +62,6 @@ def register():
         email = form.email.data
         phone = form.phone.data
         password = sha256_crypt.encrypt(str(form.password.data))
-
         doornum = form.doornum.data
         street = form.street.data
         locality = form.locality.data
@@ -374,9 +365,8 @@ def adminaddmobile():
 
 
 
-"""
-#<div class="text-center mt-10 mb-3"> <a href="{{ url_for('admin_delete_mobile') }}" class="btn  btn-dark">Delete Mobile</a></div>
 
+"""
 @app.route('/admin/delete-mobile', methods=['GET','POST'])
 @is_admin_logged_in
 def admin_delete_mobile():
@@ -386,6 +376,8 @@ def admin_delete_mobile():
     c.execute('''select * from mobile;''')
     mobs=c.fetchall()
     return render_template('delete-mob.html', mobiles=mobs)
+
+<div class="text-center mt-10 mb-3"> <a href="{{ url_for('admin_delete_mobile') }}" class="btn  btn-dark">Delete Mobile</a></div>
 
 
 @app.route('/admin/delete-mobile/<model>', methods=['GET', 'POST'])

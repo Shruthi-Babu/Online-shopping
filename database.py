@@ -65,7 +65,7 @@ def order_table():
     COST number,
     constraint fk_or1 foreign key(cust_id) references customer(id) on delete cascade,
     constraint fk_or2 foreign key(model) references mobile(model) on delete cascade,
-    constraint fk_or3 foreign key(del_boy_id) references delivery_person(id) on delete set null    
+    constraint fk_or3 foreign key(del_boy_id) references DELIVERYBOY(id) on delete set null    
     ); ''')
 
 
