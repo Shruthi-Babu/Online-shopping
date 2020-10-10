@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 
 conn = sqlite3.connect('mobileshopping.db')
 
-
+# function to create table
 def createtable():
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS CUSTOMER
@@ -31,7 +31,7 @@ UPLOAD_FOLDER = 'static'
 ALLOWED_EXTENSIONS = set([ 'png', 'jpg', 'jpeg', 'gif'])
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-
+#standard allowable file names
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
