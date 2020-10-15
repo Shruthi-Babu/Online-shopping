@@ -52,7 +52,6 @@ class RegisterForm(Form):
     street = StringField('Street', [validators.DataRequired('Please enter Street'), validators.Length(min=1, max=50)])
     locality = SelectField('Locality', choices=[('Jayanagar', 'Jayanagar'), ('TR Nagar', 'TR Nagar'), ('Malleshwaram', 'Malleshwaram'), ('Girinagar', 'Girinagar'), ('Vijaynagar', 'Vijaynagar'), ('Other', 'Other')])
 
-
 @app.route("/register", methods=['GET' , 'POST'])
 def register():
     conn = sqlite3.connect('mobileshopping.db')
@@ -76,7 +75,6 @@ def register():
         return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
-
 
 # User login
 @app.route('/login', methods=['GET', 'POST'])
@@ -111,7 +109,7 @@ def login():
             else:
                 error = 'Invalid login'
                 return render_template('login.html', error=error)
-            # Close connection
+            # Closing connection
         else:
             error = 'User not found'
             return render_template('login.html', error=error)
